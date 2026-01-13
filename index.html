@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Ahmed AI</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Segoe UI, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: #0d0d0d;
+            color: #FFD700;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #111;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background: rgba(255, 215, 0, 0.12);
+        }
+
+        .chat-item.active {
+            background: rgba(255, 215, 0, 0.35);
+            color: #000;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-actions button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        .app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .message {
+            max-width: 72%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            margin-bottom: 14px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .user {
+            margin-left: auto;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .ai {
+            background: #1a1a1a;
+            color: #FFD700;
+            border: 1px solid rgba(255, 215, 0, 0.25);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .input-area {
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid rgba(255, 215, 0, 0.25);
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+        }
+
+        .input-area button {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h3 style="text-align:center;margin-bottom:10px">Chats</h3>
+        <div class="chat-list" id="chatList"></div>
+        <div class="chat-actions">
+            <button id="newChat">New</button>
+            <button id="clearChats">Clear</button>
+        </div>
+    </div>
+
+    <div class="app">
+        <div class="header">
+            <h1>Ask Ahmed AI</h1>
+        </div>
+
+        <div class="chat-area" id="chatArea"></div>
+
+        <div class="input-area">
+            <input id="userInput" placeholder="Type your message">
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatArea = document.getElementById("chatArea");
+        const chatList = document.getElementById("chatList");
+        const userInput = document.getElementById("userInput");
+
+        let chats = JSON.parse(localStorage.getItem("chats")) || [];
+        let currentChatId = null;
+
+        function saveChats() {
+            localStorage.setItem("chats", JSON.stringify(chats));
+        }
+
+        function scrollBottom() {
+            requestAnimationFrame(() => {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        }
+
+        function renderChatArea() {
+            chatArea.innerHTML = "";
+            if (!currentChatId) return;
+
+            const chat = chats.find(c => c.id === currentChatId);
+            chat.messages.forEach(m => {
+                const div = document.createElement("div");
+                div.className = "message " + m.role;
+                div.textContent = m.text;
+
+                if (m.role === "ai") {
+                    const copy = document.createElement("span");
+                    copy.className = "copy-btn";
+                    copy.textContent = "Copy";
+                    copy.onclick = () => {
+                        navigator.clipboard.writeText(m.text);
+                        copy.textContent = "Copied";
+                        setTimeout(() => copy.textContent = "Copy", 1200);
+                    };
+                    div.appendChild(copy);
+                }
+
+                chatArea.appendChild(div);
+            });
+
+            scrollBottom();
+        }
+
+        function renderChatList() {
+            chatList.innerHTML = "";
+            chats.forEach(c => {
+                const div = document.createElement("div");
+                div.className = "chat-item" + (c.id === currentChatId ? " active" : "");
+                div.textContent = c.title;
+                div.onclick = () => {
+                    currentChatId = c.id;
+                    renderChatArea();
+                    renderChatList();
+                };
+                chatList.appendChild(div);
+            });
+        }
+
+        function newChat() {
+            const id = Date.now();
+            chats.unshift({ id, title: "New chat", messages: [] });
+            currentChatId = id;
+            saveChats();
+            renderChatArea();
+            renderChatList();
+        }
+
+        document.getElementById("newChat").onclick = newChat;
+
+        document.getElementById("clearChats").onclick = () => {
+            chats = [];
+            currentChatId = null;
+            saveChats();
+            renderChatArea();
+            renderChatList();
+        };
+
+        document.getElementById("sendBtn").onclick = async () => {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            if (!currentChatId) newChat();
+
+            const chat = chats.find(c => c.id === currentChatId);
+
+            if (chat.messages.length === 0) {
+                chat.title = text.slice(0, 18);
+            }
+
+            chat.messages.push({ role: "user", text });
+            renderChatArea();
+            renderChatList();
+            saveChats();
+
+            userInput.value = "";
+
+            chat.messages.push({ role: "ai", text: "Thinking..." });
+            renderChatArea();
+
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer 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"
+                },
+                body: JSON.stringify({
+                    model: "mistralai/devstral-2512:free",
+                    messages: [{ role: "user", content: text }]
+                })
+            });
+
+            const data = await res.json();
+            chat.messages.pop();
+
+            const reply = data.choices?.[0]?.message?.content || "No response";
+            chat.messages.push({ role: "ai", text: reply });
+
+            saveChats();
+            renderChatArea();
+        };
+
+        renderChatList();
+    </script>
+
+</body>
+
+</html>
