@@ -160,8 +160,8 @@
         <div class="chat-area" id="chatArea"></div>
 
         <div class="input-area">
-            <input id="userInput" placeholder="Type your message">
-            <button id="sendBtn">Send</button>
+            <input id="userInput" placeholder="Type your Prompt">
+            <button id="sendBtn">Submit</button>
         </div>
     </div>
 
@@ -267,14 +267,14 @@
             chat.messages.push({ role: "ai", text: "Thinking..." });
             renderChatArea();
 
-            const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            const res = await fetch("allenai/molmo-2-8b:free", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer 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"
                 },
                 body: JSON.stringify({
-                    model: "mistralai/devstral-2512:free",
+                    model: "allenai/molmo-2-8b:free",
                     messages: [{ role: "user", content: text }]
                 })
             });
@@ -293,5 +293,6 @@
     </script>
 
 </body>
+
 
 </html>
