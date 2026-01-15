@@ -267,14 +267,15 @@
             chat.messages.push({ role: "ai", text: "Thinking..." });
             renderChatArea();
 
-            const res = await fetch("allenai/molmo-2-8b:free", {
+            const res = await fetch("https://openrouter.ai/api/v1/chat/completions
+", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer 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"
                 },
                 body: JSON.stringify({
-                    model: "allenai/molmo-2-8b:free",
+                    model: "xiaomi/mimo-v2-flash:free",
                     messages: [{ role: "user", content: text }]
                 })
             });
