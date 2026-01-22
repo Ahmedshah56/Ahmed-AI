@@ -271,13 +271,13 @@ document.getElementById("sendBtn").onclick = async () => {
             method: "POST",
      headers: {
     "Content-Type": "application/json",
-    "Authorization": "Bearer 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",
+    "Authorization": "Bearer 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",
     "HTTP-Referer": window.location.origin,
     "X-Title": "Ask Ahmed AI"
 },
 
             body: JSON.stringify({
-                model: "xiaomi/mimo-v2-flash:free",
+                model: "openai/gpt-5.2",
                 messages: chat.messages.map(m => ({
                     role: m.role === "ai" ? "assistant" : "user",
                     content: m.text
@@ -305,6 +305,7 @@ renderChatList();
 
 </body>
 </html>
+
 
 
 
